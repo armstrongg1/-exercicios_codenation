@@ -17,12 +17,21 @@ import numpy as np
 import seaborn as sns
 import sklearn as sk
 
+from sklearn.preprocessing import (KBinsDiscretizer, LabelEncoder,
+                                   OneHotEncoder, StandardScaler,FunctionTransformer)
+from sklearn import preprocessing
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 # In[2]:
 
 
 # Algumas configurações para o matplotlib.
-get_ipython().run_line_magic('matplotlib', 'inline')
+#%matplotlib inline
 
 from IPython.core.pylabtools import figsize
 
@@ -53,6 +62,12 @@ countries.columns = new_column_names
 countries.head(5)
 
 
+# In[5]:
+
+
+countries.shape
+
+
 # ## Observações
 # 
 # Esse _data set_ ainda precisa de alguns ajustes iniciais. Primeiro, note que as variáveis numéricas estão usando vírgula como separador decimal e estão codificadas como strings. Corrija isso antes de continuar: transforme essas variáveis em numéricas adequadamente.
@@ -61,46 +76,161 @@ countries.head(5)
 
 # ## Inicia sua análise a partir daqui
 
-# In[5]:
+# In[6]:
 
 
 # Sua análise começa aqui.
+#print (countries.dtypes.unique().size)
+#print (countries.dtypes.unique())
+
+#countries['Pop_density'] = pd.to_numeric(countries['Pop_density'], errors='coerce')
+#countries['Pop_density'].astype(float)
+#countries['Pop_density'] = countries.Pop_density.astype(float)
+
+colunms_para_inteiro = ['Pop_density', 'Coastline_ratio', 'Net_migration', 'Infant_mortality', 'Literacy', 'Phones_per_1000', 'Arable', 'Crops', 'Other', 'Climate','Birthrate', 'Deathrate', 'Agriculture', 'Industry', 'Service']
+
+
+for i in colunms_para_inteiro:
+    #print (i)
+    #print ('So I said, "You don\'t know me! You\'ll never understand me!"')
+    #print (countries[i])
+    countries[i] = countries[i].str.replace(',', '.').astype(float)
+    
+
+
+
+countries['Country'] = countries.Country.str.strip()
+countries['Region'] = countries.Region.str.strip()
+
+
+ 
+
+
+# In[7]:
+
+
+print (countries.dtypes)
+countries.head(5)
 
 
 # ## Questão 1
 # 
 # Quais são as regiões (variável `Region`) presentes no _data set_? Retorne uma lista com as regiões únicas do _data set_ com os espaços à frente e atrás da string removidos (mas mantenha pontuação: ponto, hífen etc) e ordenadas em ordem alfabética.
 
-# In[6]:
+# In[8]:
 
 
 def q1():
     # Retorne aqui o resultado da questão 1.
-    pass
+    region = countries['Region'].unique().tolist()
+    region.sort()
+    print (region)
+    #print ( np.sort(countries['Region'].unique()).tolist())
+    return region
+
+
+
+
+    
 
 
 # ## Questão 2
 # 
 # Discretizando a variável `Pop_density` em 10 intervalos com `KBinsDiscretizer`, seguindo o encode `ordinal` e estratégia `quantile`, quantos países se encontram acima do 90º percentil? Responda como um único escalar inteiro.
 
-# In[7]:
+# In[9]:
 
 
 def q2():
+    est = KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')
+    #print (est)
+    discretizando = est.fit_transform(np.array(countries["Pop_density"]).reshape(-1, 1))
+    #print (discretizando)
+    # obtendo 90º percentil
+    percentil90 = np.quantile(discretizando, 0.9)
+    #print (percentil90)
+    
+    resposta = len(discretizando[discretizando > percentil90])
+    #print (resposta)
+    
+    return int(resposta)
+    
+    
     # Retorne aqui o resultado da questão 2.
-    pass
+    
 
 
 # # Questão 3
 # 
 # Se codificarmos as variáveis `Region` e `Climate` usando _one-hot encoding_, quantos novos atributos seriam criados? Responda como um único escalar.
 
-# In[9]:
+# In[10]:
 
 
 def q3():
+    
+    #print (countries['Region'].unique())
+    
+    #print (countries['Climate'].unique())
+    
+    
+    #label_encoder = LabelEncoder()
+    #Regioes = label_encoder.fit_transform(countries["Region"])
+    #climate = label_encoder.fit_transform(countries["Climate"])
+    #countries["Climate"] = label_encoder.fit_transform(countries["Climate"])
+    #countries["Region"] = label_encoder.fit_transform(countries["Region"])
+    #diferentes_climas = (countries["Climate"].nunique())
+    #diferentes_regioes = (countries["Region"].nunique())
+    #print (diferentes_climas + diferentes_regioes)
+    #return int(diferentes_climas + diferentes_regioes)
+    
+    #one-hot_encoding
+    
+       # Retorne aqui o resultado da questão 3.
+    
+    # objeto para converter categórico para numérico
+    le = preprocessing.LabelEncoder()
+    
+    # objeto para aplicar oneHot
+    enc = OneHotEncoder(handle_unknown='ignore')
+    
+    # variável temporária
+    data = countries[["Region", "Climate"]]
+    
+    data.fillna({"Climate": 0}, inplace=True)
+    
+    # transformando colunas region em numérica
+    data["Region"] = le.fit_transform(data["Region"])
+    
+    # aplicando o oneHotEncoding
+    values = enc.fit_transform(data).toarray()
+    
+    # Pegando os nomes das novas colunas
+    colNames = list(enc.get_feature_names(["Region", "Climate"]))
+    
+    # criando o dataframe com os novos dados
+    newData = pd.DataFrame(values, columns=colNames)
+     
+    # obtendo o número de novas colunas adicionadas
+    colunas = int(newData.shape[1])
+    print(colunas)
+    
+    
+    #getdummies
+    
+    resultado_get_dummies = pd.get_dummies(countries[['Region', 'Climate']].fillna('NaN'))
+    #print (resultado_get_dummies)
+
+    resultado = int(resultado_get_dummies.shape[1])
+    #print (resultado)
+    
+    return resultado
+
+    
+    
+    
     # Retorne aqui o resultado da questão 3.
-    pass
+    
 
 
 # ## Questão 4
@@ -112,7 +242,14 @@ def q3():
 # 
 # Após aplicado o _pipeline_ descrito acima aos dados (somente nas variáveis dos tipos especificados), aplique o mesmo _pipeline_ (ou `ColumnTransformer`) ao dado abaixo. Qual o valor da variável `Arable` após o _pipeline_? Responda como um único float arredondado para três casas decimais.
 
-# In[10]:
+# In[11]:
+
+
+#deixar apenas variaveis numericas(int64 e float64)
+df_col = countries.columns.drop(['Country', 'Region'])
+df_num = countries[df_col].astype(float)
+print (df_num)
+
 
 
 test_country = [
@@ -125,13 +262,31 @@ test_country = [
     0.263445277972641, 0.5712416961268142
 ]
 
+row_test_country = pd.DataFrame([test_country], columns = new_column_names)
+row_test_country.info()
 
-# In[11]:
+
+# In[12]:
 
 
 def q4():
-    # Retorne aqui o resultado da questão 4.
-    pass
+    
+    num_pipeline = Pipeline(steps=[("imputer", SimpleImputer(strategy="median")), ("std_scaler", StandardScaler())])    
+    
+    #print (num_pipeline)
+    test_country_num = row_test_country.drop(['Country', 'Region'], axis = 1)
+    #print (test_country_num)
+    test_country_cat = row_test_country[['Country', 'Region']]
+    #print (test_country_cat)
+    df_num_fit = num_pipeline.fit(df_num)
+    print (df_num_fit)
+    test_cty_transf = num_pipeline.transform(test_country_num)
+    print (test_cty_transf)
+    test_cty_transf_df = pd.DataFrame(test_cty_transf, columns = df_num.columns)
+    print (test_cty_transf_df)
+    result = float(test_cty_transf_df['Arable'].round(3))
+    print (result)
+    return result
 
 
 # ## Questão 5
@@ -144,12 +299,55 @@ def q4():
 # 
 # Você deveria remover da análise as observações consideradas _outliers_ segundo esse método? Responda como uma tupla de três elementos `(outliers_abaixo, outliers_acima, removeria?)` ((int, int, bool)).
 
-# In[12]:
+# In[13]:
 
 
 def q5():
-    # Retorne aqui o resultado da questão 4.
-    pass
+    
+
+    #quartis
+    Q1 = countries['Net_migration'].quantile(q= 0.25)
+    Q3 = countries['Net_migration'].quantile(q= 0.75)
+
+    # Intervalo interquartil:
+    IQR = Q3 - Q1
+
+   # Limite inferior:
+    lim_max = (countries['Net_migration'] < (Q1 - 1.5 * IQR)).sum()
+    # Limite superior:
+    lim_min = (countries['Net_migration'] > (Q3 + 1.5 * IQR)).sum()
+    
+    # Número de outliers:
+    return int(lim_max), int(lim_min),False
+q5()
+
+
+# In[14]:
+
+
+#Visualização utilizando histograma:
+#sns.distplot(countries['Net_migration'], color='m');
+
+
+# In[15]:
+
+
+#Visualização utilizando boxplot:
+ax = sns.boxplot(countries['Net_migration'], orient='vertical',color='r');
+
+
+# In[16]:
+
+
+
+#Tratar outliers:
+
+#Podemos eliminá-los da nossa amostra;
+#Podemos analisá-los de forma separada,
+#Podemos realizar alguma transformação matemática para reduzir a variação dos dados.
+#O intervalo interquartil é uma medida de dispersão utilizada em estatística descritiva. Seu cálculo se da pela subtração do 3° quartil pelo 1° quartil.
+
+#POdemos considerar como outliers os valores menores que Q1-1,5*IQR ou valores maiores que Q3+1,5*IQR.
 
 
 # ## Questão 6
@@ -165,22 +363,62 @@ def q5():
 # 
 # Aplique `CountVectorizer` ao _data set_ `newsgroups` e descubra o número de vezes que a palavra _phone_ aparece no corpus. Responda como um único escalar.
 
-# In[13]:
+# In[23]:
 
 
 def q6():
-    # Retorne aqui o resultado da questão 4.
-    pass
+    categories = ['sci.electronics', 'comp.graphics', 'rec.motorcycles']
+    
+    #print (categories)
+
+    newsgroup = fetch_20newsgroups(subset="train", categories=categories, shuffle=True, random_state=42)
+    print(newsgroup)
+    
+    count_vectorizer = CountVectorizer()
+
+    newsgroups_counts = count_vectorizer.fit_transform(newsgroup.data)
+    
+    #print (newsgroups_counts)
+    #print (count_vectorizer.vocabulary_)
+    #print(int(newsgroups_counts[:, count_vectorizer.vocabulary_["phone"]].toarray().sum()))
+    
+    
+    return int(newsgroups_counts[:, count_vectorizer.vocabulary_["phone"]].toarray().sum())
+
+    
 
 
 # ## Questão 7
 # 
 # Aplique `TfidfVectorizer` ao _data set_ `newsgroups` e descubra o TF-IDF da palavra _phone_. Responda como um único escalar arredondado para três casas decimais.
 
-# In[14]:
+# In[28]:
+
+
+tfidf_vectorizer = TfidfVectorizer()
+
+categories = ['sci.electronics', 'comp.graphics', 'rec.motorcycles']
+
+newsgroup = fetch_20newsgroups(subset="train", categories=categories, shuffle=True, random_state=42)
+    
+
+tfidf_vectorizer.fit(newsgroup.data)
+
+newsgroups_tfidf_vectorized = tfidf_vectorizer.transform(newsgroup.data)
+
+
+# In[29]:
 
 
 def q7():
-    # Retorne aqui o resultado da questão 4.
-    pass
+    
+    idf_value = newsgroups_tfidf_vectorized[:, tfidf_vectorizer.vocabulary_["phone"]].toarray().sum()
+    
+    return float(round(idf_value, 3))
+
+
+# In[ ]:
+
+
+
 
