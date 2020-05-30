@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pegando dados do database!</title>
+
+</head>
+
+<body>
+
+    <h1>Index</h1>
+
+
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cli in cliente %}
+            <tr>            
+                <td>{{ cli.id }}</td>
+                <td>{{ cli.nome }}</td>
+                <td>{{ cli.telefone }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+</body>
+</html>
