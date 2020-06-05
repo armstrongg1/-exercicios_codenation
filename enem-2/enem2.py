@@ -22,14 +22,15 @@ train = pd.read_csv("train.csv")
 
 
 #pega o valor inicial de nuincricao para jogar na planilha de resposta final
-final = train.filter(['NU_INSCRICAO'])
+final = test.filter(['NU_INSCRICAO'])
 
 #variavel que queremos - Já preencho com zero ( vou fazer isso pras outras notas também )
 Y = train.filter(['NU_NOTA_MT']).fillna(0)
 
+#acrescentar tp_cor_raca
 
 #filtra variaveis que vão influenciar no modelo ( verifiquei pela correlação em outro script )
-test = test.filter(['TP_DEPENDENCIA_ADM_ESC','TP_SEXO','NU_NOTA_REDACAO',
+test = test.filter(['TP_COR_RACA','TP_DEPENDENCIA_ADM_ESC','TP_SEXO','NU_NOTA_REDACAO',
                   'NU_NOTA_CN',
                   'NU_NOTA_LC',
                   'NU_NOTA_CH',
@@ -69,7 +70,7 @@ test = test.filter(['TP_DEPENDENCIA_ADM_ESC','TP_SEXO','NU_NOTA_REDACAO',
                    'TP_ST_CONCLUSAO'])
 
 #filtra variaveis que vão influenciar no modelo
-train = train.filter(['TP_DEPENDENCIA_ADM_ESC','TP_SEXO','NU_NOTA_REDACAO',
+train = train.filter(['TP_COR_RACA','TP_DEPENDENCIA_ADM_ESC','TP_SEXO','NU_NOTA_REDACAO',
                   'NU_NOTA_CN',
                   'NU_NOTA_LC',
                   'NU_NOTA_CH',
@@ -134,7 +135,7 @@ train = pd.concat([pd.get_dummies(train, columns=['TP_SEXO','TP_DEPENDENCIA_ADM_
 train.drop(columns=['CO_PROVA_CH_d5f6d17523d2cce3e4dc0a7f0582a85cec1c15ee', 'CO_PROVA_CN_a27a1efea095c8a973496f0b57a24ac6775d95b0'], axis=1,inplace=True)
 
 #modelo utilizado
-rf = RandomForestRegressor(n_estimators=100,random_state = 42)
+rf = RandomForestRegressor(n_estimators=10000,random_state = 42)
 
 #treina o modelo
 rf.fit(train, Y)
