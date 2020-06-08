@@ -134,7 +134,7 @@ train = pd.concat([pd.get_dummies(train, columns=['TP_SEXO','TP_DEPENDENCIA_ADM_
 #como no teste não possui estes valores, acho que podemos retira-las...
 train.drop(columns=['CO_PROVA_CH_d5f6d17523d2cce3e4dc0a7f0582a85cec1c15ee', 'CO_PROVA_CN_a27a1efea095c8a973496f0b57a24ac6775d95b0'], axis=1,inplace=True)
 
-#modelo utilizado
+#modelo utilizado - ok
 rf = RandomForestRegressor(n_estimators=10000,random_state = 42)
 
 #treina o modelo
